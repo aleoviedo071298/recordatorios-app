@@ -40,12 +40,3 @@ sealed class EstadoRecordatorio {
     data object Completado : EstadoRecordatorio()
     data object Cancelado : EstadoRecordatorio()
 }
-
-val recordatorio1 = Recordatorio(
-    1,
-     titulo = "Estudiar Kotlin",
-    descripcion= "Repasar sealed classes",
-    categoria= Categoria.Estudio,
-    prioridad= Prioridad.Alta,
-    estado = EstadoRecordatorio.Pendiente
-)
