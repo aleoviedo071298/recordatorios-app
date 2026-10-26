@@ -99,11 +99,6 @@ git clone https://github.com/aleoviedo071298/recordatorios-app.git
 2. Elegir un emulador o un dispositivo conectado.
 3. Ejecutar la configuración `app`.
 
-## Hoja de ruta
-
-- **Módulo 1** — Configuración del proyecto, modelo de dominio, datos simulados y pantalla inicial en Compose *(esta versión)*.
-- **Módulos 2–4** — Formularios y validaciones, navegación, persistencia local, sincronización con la nube, recordatorios por ubicación y programados, versión firmada distribuida mediante un canal de pruebas.
-
 ---
 
 **Alejandro Oviedo** · [LinkedIn](https://www.linkedin.com/in/aleoviedo071298/) · [GitHub](https://github.com/aleoviedo071298)
