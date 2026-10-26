@@ -10,7 +10,7 @@
 
 ## Acerca del proyecto
 
-Actividad 1 de **Programación Mobile** — Teclab, Técnica Superior en Programación (Bimestre 2B). La app se desarrolla de forma incremental a lo largo de los cuatro módulos de la materia; esta primera etapa configura el proyecto Android, modela los recordatorios con data classes y sealed classes de Kotlin, y muestra datos simulados en una pantalla inicial construida con Jetpack Compose y Material 3. Todavía no hay formularios, navegación, persistencia ni sincronización remota: llegan en los módulos siguientes.
+Actividad 1 de **Programación Mobile** — Teclab, Tecnicatura Superior en Programación (Bimestre 2B). La app se desarrolla de forma incremental a lo largo de los cuatro módulos de la materia; esta primera etapa configura el proyecto Android, modela los recordatorios con data classes y sealed classes de Kotlin, y muestra datos simulados en una pantalla inicial construida con Jetpack Compose y Material 3. Todavía no hay formularios, navegación, persistencia ni sincronización remota: llegan en los módulos siguientes.
 
 <p align="center">
   <img src="docs/screenshot.png" alt="Pantalla principal ejecutándose en el emulador" width="280">
