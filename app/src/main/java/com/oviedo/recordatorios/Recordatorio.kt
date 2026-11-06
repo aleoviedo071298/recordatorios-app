@@ -1,6 +1,5 @@
 package com.oviedo.recordatorios
 
-import android.R.id
 
 
 data class Recordatorio (

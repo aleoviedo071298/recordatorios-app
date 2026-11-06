@@ -1,108 +1,24 @@
-
 package com.oviedo.recordatorios
+import com.oviedo.recordatorios.ui.viewmodel.RecordatoriosViewModelFactory
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-
 import com.oviedo.recordatorios.ui.theme.RecordatoriosAppTheme
+import com.oviedo.recordatorios.ui.navigation.RecordatoriosNavHost
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        val repositorio = (application as RecordatoriosApplication).repositorio
+        val viewModelFactory = RecordatoriosViewModelFactory(repositorio)
         setContent {
             RecordatoriosAppTheme {
-                PantallaRecordatorios()
+                RecordatoriosNavHost(
+                    viewModelFactory = viewModelFactory
+                )
             }
-        }
-    }
-}
-
-@Composable
-fun PantallaRecordatorios() {
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { paddingInterno ->
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingInterno)
-                .padding(16.dp)
-        ) {
-
-            Text(
-                text = "Mis Recordatorios",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            Text(
-                text = "${recordatorios.size} recordatorios registrados",
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(recordatorios) { recordatorio ->
-                    TarjetaRecordatorio(recordatorio)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TarjetaRecordatorio(recordatorio: Recordatorio) {
-
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-
-            Text(
-                text = recordatorio.titulo,
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Text(
-                text = "Categoría: ${nombreCategoria(recordatorio.categoria)}"
-            )
-
-            Text(
-                text = "Prioridad: ${nombrePrioridad(recordatorio.prioridad)}"
-            )
-
-            Text(
-                text = "Estado: ${nombreEstado(recordatorio.estado)}"
-            )
         }
     }
 }

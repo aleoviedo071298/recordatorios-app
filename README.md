@@ -1,6 +1,6 @@
 # RecordatoriosApp
 
-> App Android desarrollada con Kotlin y Jetpack Compose — primera iteración de una app de recordatorios contextuales: modelo de dominio inmutable, datos simulados procesados con List, Set y Map, y una pantalla de listado con Material 3.
+> App Android desarrollada con Kotlin y Jetpack Compose para gestionar recordatorios. La segunda entrega suma listado, creación y detalle conectados con Navigation Compose, formularios validados y una arquitectura de presentación con ViewModel, UiState y StateFlow sobre un repositorio en memoria.
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
 ![Android](https://img.shields.io/badge/Android-34A853?style=for-the-badge&logo=android&logoColor=white)
@@ -10,10 +10,23 @@
 
 ## Acerca del proyecto
 
-Actividad 1 de **Programación Mobile** — Teclab, Tecnicatura Superior en Programación (Bimestre 2B). La app se desarrolla de forma incremental a lo largo de los cuatro módulos de la materia; esta primera etapa configura el proyecto Android, modela los recordatorios con data classes y sealed classes de Kotlin, y muestra datos simulados en una pantalla inicial construida con Jetpack Compose y Material 3. Todavía no hay formularios, navegación, persistencia ni sincronización remota: llegan en los módulos siguientes.
+Proyecto de **Programación Mobile**: Teclab, Tecnicatura Superior en Programación (Bimestre 2B). La app se desarrolla de forma incremental a lo largo de los cuatro módulos de la materia.
+
+| Entrega | Contenido |
+|---|---|
+| **Actividad 1** | Configuración del proyecto, modelo de dominio con data classes y sealed classes, datos simulados y una primera pantalla de listado. |
+| **Actividad 2** (actual) | Pantallas de listado, creación y detalle; componentes reutilizables; formulario validado; ViewModel + UiState + StateFlow; repositorio en memoria; navegación con Navigation Compose. |
+
+La persistencia local, la sincronización remota, la ubicación y los avisos llegan en los módulos siguientes.
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="Pantalla principal ejecutándose en el emulador" width="280">
+  <img src="docs/listado.png" alt="Listado de recordatorios" width="200">
+  <img src="docs/formulario.png" alt="Formulario de creación" width="200">
+  <img src="docs/detalle.png" alt="Detalle de un recordatorio" width="200">
+</p>
+<p align="center">
+  <img src="docs/vacio.png" alt="Estado vacío" width="200">
+  <img src="docs/error.png" alt="Estado de error con reintento" width="200">
 </p>
 
 ## Stack tecnológico
@@ -22,74 +35,82 @@ Actividad 1 de **Programación Mobile** — Teclab, Tecnicatura Superior en Prog
 |---|---|
 | **Lenguaje** | Kotlin 2.2 |
 | **UI** | Jetpack Compose + Material 3 (Compose BOM 2026.02.01) |
-| **Build** | Gradle (Kotlin DSL) con catálogo de versiones (`gradle/libs.versions.toml`), AGP 9.4 |
+| **Navegación** | Navigation Compose 2.10 |
+| **Estado** | ViewModel, StateFlow, Coroutines (`viewModelScope`), `collectAsStateWithLifecycle` |
+| **Build** | Gradle (Kotlin DSL) con catálogo de versiones, AGP 9.4 |
 | **SDK** | `minSdk` 26 · `targetSdk` / `compileSdk` 37 |
-| **JVM target** | Java 11 |
 
-## Modelo de dominio
+## Arquitectura
 
-`Recordatorio` es una `data class` inmutable (todas sus propiedades son `val`). Los datos opcionales se modelan como tipos nullables con valores por defecto, y un bloque `init` rechaza estados inválidos al momento de crear el objeto:
+```
+Pantalla (Compose) ──eventos──▶ ViewModel ──suspend──▶ RecordatorioRepository (interfaz)
+       ▲                           │                           │
+       └──── StateFlow<UiState> ◀──┘                 RepositorioEnMemoria
+```
 
-| Propiedad | Tipo | Notas |
-|---|---|---|
-| `id` | `Int` | Debe ser mayor a 0 |
-| `titulo` | `String` | No puede estar en blanco |
-| `descripcion` | `String?` | Opcional |
-| `categoria` | `Categoria` | Sealed class |
-| `prioridad` | `Prioridad` | Sealed class |
-| `estado` | `EstadoRecordatorio` | Sealed class |
-| `ubicacion` | `String?` | Opcional, por defecto `null` |
-| `fechaAviso` | `String?` | Opcional, por defecto `null` |
+- **Repositorio**: `RecordatorioRepository` declara `obtenerRecordatorios`, `obtenerPorId` y `guardarRecordatorio`. `RepositorioEnMemoria` lo implementa. El ViewModel depende solo de la interfaz, así que la fuente de datos se puede reemplazar sin tocar las pantallas.
+- **ViewModel**: recibe los eventos de la interfaz, aplica las validaciones y publica estados inmutables. Mantiene `MutableStateFlow` privados y expone `StateFlow` de solo lectura, que actualiza con `update { it.copy(...) }`. No guarda referencias a Activity ni a View.
+- **UiState**:
+  - `ListadoUiState`: `Cargando`, `Vacio`, `Contenido`, `Error` (sealed interface).
+  - `DetalleUiState`: `Cargando`, `Contenido`, `Error` (sealed interface).
+  - `FormularioUiState`: valores de los campos, mensajes de validación y `EstadoEnvio` (`Inactivo`, `Guardando`, `Exito`, `Error`).
+- **Pantallas**: cada una tiene un punto de entrada con estado, que obtiene el ViewModel y observa el flujo, y un contenido sin estado que solo recibe datos y lambdas.
 
-Los conjuntos cerrados de valores son jerarquías `sealed class` con miembros `data object`, así que todo `when` sobre ellos es exhaustivo sin necesidad de una rama `else`:
+## Navegación
 
-| Sealed class | Valores |
-|---|---|
-| `Categoria` | `Estudio`, `Trabajo`, `Personal` |
-| `Prioridad` | `Alta`, `Media`, `Baja` |
-| `EstadoRecordatorio` | `Pendiente`, `Completado`, `Cancelado` |
+| Ruta | Pantalla | Argumentos | Acciones |
+|---|---|---|---|
+| `listado` (inicial) | `PantallaListado` | — | `onCrearRecordatorio`, `onRecordatorioClick(id)` |
+| `crear` | `PantallaCrear` | — | `onGuardar`, `onCancelar` (`popBackStack()`) |
+| `detalle/{id}` | `PantallaDetalle` | `id: Int` | `onVolver` (`popBackStack()`) |
 
-## Datos simulados
+El `NavController` se crea solo en `RecordatoriosNavHost`. Hacia el detalle se envía únicamente el identificador, nunca el objeto completo.
 
-`DatosSimulados.kt` contiene los datos de prueba y las operaciones sobre colecciones:
+## Formulario y validaciones
 
-| Valor | Colección | Descripción |
-|---|---|---|
-| `recordatorios` | `List<Recordatorio>` | Cuatro recordatorios de ejemplo, uno de ellos sin descripción |
-| `categoriasUnicas` | `Set<Categoria>` | Categorías en uso, sin repetir (`map` + `toSet`) |
-| `coloresCategorias` | `Map<Categoria, String>` | Categoría → etiqueta de color |
-| `recordatoriosPendientes` | `List<Recordatorio>` | Filtrados por estado `Pendiente` |
-| `recordatoriosAltaPrioridad` | `List<Recordatorio>` | Filtrados por prioridad `Alta` |
+- Título: al menos 4 caracteres después de `trim()`.
+- Descripción: opcional, máximo 200 caracteres (con contador).
+- Categoría y prioridad: obligatorias, elegidas entre las opciones de las sealed classes.
+- **Guardar** se deshabilita si el formulario es inválido o si hay un guardado en curso.
+- Los errores se comunican con `isError`, un texto "Error: …" y la propiedad semántica `error(...)`, no solo con color.
 
-## Interfaz
+## Simulación de estados
 
-`MainActivity` define el contenido dentro de `RecordatoriosAppTheme` y renderiza `PantallaRecordatorios`: un `Scaffold` con un título, la cantidad total de recordatorios y un `LazyColumn` de `Card`s de Material 3. Cada `TarjetaRecordatorio` muestra el título, la categoría, la prioridad y el estado del recordatorio, convertidos a texto con expresiones `when` exhaustivas.
+`RecordatoriosApplication` crea el repositorio con tres parámetros que permiten comprobar todos los estados sin una base de datos:
+
+```kotlin
+RepositorioEnMemoria(
+    simularListaVacia = false,    // listado vacío con acción "Crear recordatorio"
+    simularErrorCarga = false,    // error de carga con botón "Reintentar"
+    simularErrorGuardado = false  // error al guardar con "Reintentar guardado"
+)
+```
+
+La carga (800 ms) y el guardado (1 s) simulan demoras con `delay` dentro de `viewModelScope`, sin bloquear la interfaz.
 
 ## Estructura del proyecto
 
 ```
-RecordatoriosApp/
-├── app/
-│   ├── build.gradle.kts                    Config del módulo: versiones de SDK, Compose, dependencias
-│   └── src/main/
-│       ├── AndroidManifest.xml
-│       ├── java/com/oviedo/recordatorios/
-│       │   ├── MainActivity.kt             Activity + pantalla y tarjeta en Compose
-│       │   ├── Recordatorio.kt             Data class y sealed classes
-│       │   ├── DatosSimulados.kt           Datos de prueba, Set, Map y filtros
-│       │   └── ui/theme/                   Tema Material 3 (Color, Theme, Type)
-│       └── res/                            Strings, temas, íconos del launcher
-├── gradle/
-│   └── libs.versions.toml                  Catálogo de versiones
-├── docs/
-│   └── screenshot.png
-├── build.gradle.kts
-└── settings.gradle.kts
+app/src/main/java/com/oviedo/recordatorios/
+├── MainActivity.kt                 Activity: tema + NavHost
+├── RecordatoriosApplication.kt     Instancia única del repositorio
+├── Recordatorio.kt                 Modelo de dominio y sealed classes
+├── DatosSimulados.kt               Datos de prueba
+├── data/
+│   ├── RecordatorioRepository.kt   Interfaz del repositorio
+│   └── RepositorioEnMemoria.kt     Implementación en memoria + simulación
+└── ui/
+    ├── components/                 TarjetaRecordatorio, EstadoPantalla, CamposFormulario
+    ├── navigation/                 RecordatoriosNavHost y rutas
+    ├── screens/                    PantallaListado, PantallaCrear, PantallaDetalle
+    ├── state/                      ListadoUiState, DetalleUiState, FormularioUiState
+    ├── theme/                      Tema Material 3
+    └── viewmodel/                  RecordatoriosViewModel y su Factory
 ```
 
 ## Instalación
 
-**Requisitos:** Android Studio (versión estable reciente) con un Android SDK y un emulador creado desde Device Manager, o un dispositivo físico con la depuración USB habilitada.
+**Requisitos:** Android Studio (versión estable reciente) con Android SDK y un emulador, o un dispositivo físico con depuración USB habilitada. Desarrollado y probado en un emulador Pixel 9 Pro.
 
 ```bash
 git clone https://github.com/aleoviedo071298/recordatorios-app.git
