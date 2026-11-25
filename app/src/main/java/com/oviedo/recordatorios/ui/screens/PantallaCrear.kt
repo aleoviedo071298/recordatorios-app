@@ -49,15 +49,23 @@ private val prioridades = listOf(Prioridad.Alta, Prioridad.Media, Prioridad.Baja
 
 /**
  * Punto de entrada con estado: conecta el formulario con el ViewModel.
+ * Con [recordatorioId] null crea un recordatorio; con un id, lo edita.
  */
 @Composable
 fun PantallaCrear(
     viewModelFactory: RecordatoriosViewModelFactory,
     onCancelar: () -> Unit,
-    onGuardadoExitoso: () -> Unit
+    onGuardadoExitoso: () -> Unit,
+    recordatorioId: Int? = null
 ) {
     val recordatoriosViewModel: RecordatoriosViewModel = viewModel(factory = viewModelFactory)
     val formularioState by recordatoriosViewModel.formularioState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(recordatorioId) {
+        if (recordatorioId != null) {
+            recordatoriosViewModel.cargarParaEditar(recordatorioId)
+        }
+    }
 
     LaunchedEffect(formularioState.estadoEnvio) {
         if (formularioState.estadoEnvio == EstadoEnvio.Exito) {
@@ -95,7 +103,9 @@ fun FormularioRecordatorio(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Nuevo recordatorio") },
+                title = {
+                    Text(if (estado.esEdicion) "Editar recordatorio" else "Nuevo recordatorio")
+                },
                 navigationIcon = {
                     IconButton(onClick = onCancelar) {
                         Icon(
@@ -177,6 +187,7 @@ fun FormularioRecordatorio(
                         when {
                             estado.enviando -> "Guardando..."
                             estado.estadoEnvio is EstadoEnvio.Error -> "Reintentar guardado"
+                            estado.esEdicion -> "Guardar cambios"
                             else -> "Guardar recordatorio"
                         }
                     )

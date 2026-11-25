@@ -14,8 +14,13 @@ data class FormularioUiState(
     // Pasa a true cuando la persona modifica algún campo, para no
     // mostrar errores antes de que empiece a completar el formulario.
     val interactuado: Boolean = false,
-    val estadoEnvio: EstadoEnvio = EstadoEnvio.Inactivo
+    val estadoEnvio: EstadoEnvio = EstadoEnvio.Inactivo,
+    // Id del recordatorio que se está editando; null al crear uno nuevo.
+    val idEdicion: Int? = null
 ) {
+    val esEdicion: Boolean
+        get() = idEdicion != null
+
     val tituloValido: Boolean
         get() = titulo.trim().length >= LONGITUD_MINIMA_TITULO
     val descripcionValida: Boolean

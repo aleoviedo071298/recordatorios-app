@@ -36,6 +36,7 @@ fun TarjetaRecordatorio(
             Text(text = "Categoría: ${nombreCategoria(recordatorio.categoria)}")
             Text(text = "Prioridad: ${nombrePrioridad(recordatorio.prioridad)}")
             Text(text = "Estado: ${nombreEstado(recordatorio.estado)}")
+            EtiquetaSincronizacion(estado = recordatorio.estadoSincronizacion)
         }
     }
 }

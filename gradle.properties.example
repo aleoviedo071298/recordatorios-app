@@ -1,0 +1,9 @@
+# Copiar estas propiedades a ~/.gradle/gradle.properties o al
+# gradle.properties del proyecto. No contienen credenciales.
+
+# URL base del servicio remoto. Debe terminar en "/".
+RECORDATORIOS_API_BASE_URL=https://example.com/
+
+# Modo del servicio simulado en compilaciones debug:
+# NORMAL, ERROR_SERVIDOR, SOLICITUD_INVALIDA, TIMEOUT o SIN_CONEXION.
+RECORDATORIOS_API_SIMULACION=NORMAL
